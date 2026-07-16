@@ -4,8 +4,8 @@ Run the most suitable LSP codelens for a position in buffer.
 
 ## What it does
 
-This plugin currently provides convenience features for working with executable codelenses provided
-by some LSP servers, usually as means to run executable parts of programs and tests.
+This plugin provides convenience features for working with executable codelenses provided by some
+LSP servers (usually as means to run executable parts of programs and tests).
 
 ### Running remote codelenses
 
@@ -33,10 +33,14 @@ codelenses they produce which contains a range of code which defines the runnabl
 the whole test module.
 
 `smart-codelens-run` finds all the codelenses whose range contains the current line / marked
-position and presents the user with a choice via `vim.ui.select`. This allows one to run the
+position and presents the user with a choice via [`vim.ui.select`]. This allows one to run the
 runnable function / test they are currently working on without moving the cursor. For LSPs where
 this is not supported (the range is not emitted), the user may fall back to defining a mark for the
 test header and using the `"r` registere prefix.
+
+The mark may also be defined elsewhere than the line in which there is a codelens, and on supported
+LSPs the most suitable codelens is resolved for the mark just as it is for the current cursor
+location.
 
 [`vim.lsp.codelens.run`]: https://neovim.io/doc/user/lsp/#vim.lsp.codelens.run()
 [`rust-analyzer`]: https://rust-analyzer.github.io/
@@ -48,9 +52,9 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ``` lua
 {
-  "komar/smart-codelens-run.nvim",
+  'komar007/smart-codelens-run.nvim',
   keys = {
-    { "<leader>gC", "<Plug>(SmartCodelensRun)", desc = "run related codelens" },
+    { "gC", "<Plug>(SmartCodelensRun)", desc = "Run related codelens" },
   },
 }
 ```
