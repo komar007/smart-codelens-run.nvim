@@ -16,18 +16,34 @@ local function codelenses_on(pos)
   local position = vim.fn.getpos(pos)
   local bufnr = position[1]
   local row = position[2] - 1
-  local col = position[3] - 1
+
+  local lenses_in_buffer
+  if vim.fn.has('nvim-0.12') == 1 then
+    lenses_in_buffer = vim.lsp.codelens.get({ bufnr = bufnr })
+  else
+    lenses_in_buffer = vim.lsp.codelens.get(bufnr)
+  end
 
   local lenses = {}
-  for _, lens in ipairs(vim.lsp.codelens.get(bufnr)) do
+  for _, item in ipairs(lenses_in_buffer) do
+    local lens
+    local client_id
+    if vim.fn.has('nvim-0.12') == 1 then
+      lens = item.lens
+      client_id = item.client_id
+    else
+      lens = item
+      client_id = nil
+    end
     if lens.command and lens.command.command ~= '' then
       local ra_start, ra_end = get_ra_runnable_range(lens)
-
       if lens.range and lens.range.start.line == row then
-        table.insert(lenses, { lens, prio = -1, bufnr = bufnr })
+        -- highest priority for lenses on current line
+        table.insert(lenses, { lens, prio = -1, bufnr = bufnr, client_id = client_id })
       elseif ra_start <= row and row <= ra_end then
         local size = ra_end - ra_start
-        table.insert(lenses, { lens, prio = size, bufnr = bufnr })
+        -- lower priority for larger range (prefer local lenses)
+        table.insert(lenses, { lens, prio = size, bufnr = bufnr, client_id = client_id })
       end
     end
   end
@@ -39,14 +55,27 @@ local function codelenses_on(pos)
   return lenses
 end
 
-local function execute_lens(lens, bufnr)
-  -- The codelens source client is not exposed here, so try all clients attached
-  -- to this buffer. Clients that do not own the command should ignore it.
-  for _, client in pairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+local function execute_lens(lens, bufnr, client_id)
+  if client_id ~= nil then
+    local client = vim.lsp.get_client_by_id(client_id)
+    if client == nil then
+      vim.notify('could not excute codelens, client ' .. client_id .. ' gone')
+      return
+    end
+    vim.notify('excuting on ' .. client.name)
     client:exec_cmd(lens.command, { bufnr = bufnr }, function(...)
       vim.lsp.handlers[methods.workspace_executeCommand](...)
       vim.lsp.codelens.refresh()
     end)
+  else
+    -- The codelens source client is not exposed here (<nvim-0.12), so try all clients attached
+    -- to this buffer. Clients that do not own the command should ignore it.
+    for _, client in pairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+      client:exec_cmd(lens.command, { bufnr = bufnr }, function(...)
+        vim.lsp.handlers[methods.workspace_executeCommand](...)
+        vim.lsp.codelens.refresh()
+      end)
+    end
   end
 end
 
@@ -75,7 +104,7 @@ function M.run_on(pos)
     vim.notify('No executable codelens found for current line', vim.log.levels.INFO)
   elseif #options == 1 then
     local lens = options[1]
-    execute_lens(lens[1], lens.bufnr)
+    execute_lens(lens[1], lens.bufnr, lens.client_id)
   else
     vim.ui.select(options, {
       prompt = 'Code lenses:',
@@ -83,7 +112,7 @@ function M.run_on(pos)
       format_item = format_lens,
     }, function(lens)
       if lens then
-        execute_lens(lens[1], lens.bufnr)
+        execute_lens(lens[1], lens.bufnr, lens.client_id)
       end
     end)
   end
