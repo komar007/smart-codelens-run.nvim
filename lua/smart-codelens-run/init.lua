@@ -59,10 +59,10 @@ local function execute_lens(lens, bufnr, client_id)
   if client_id ~= nil then
     local client = vim.lsp.get_client_by_id(client_id)
     if client == nil then
-      vim.notify('could not excute codelens, client ' .. client_id .. ' gone')
+      vim.notify('could not execute codelens, client ' .. client_id .. ' gone', vim.log.levels.ERROR)
       return
     end
-    vim.notify('excuting on ' .. client.name)
+    vim.notify('excuting on ' .. client.name, vim.log.levels.DEBUG)
     client:exec_cmd(lens.command, { bufnr = bufnr }, function(...)
       vim.lsp.handlers[methods.workspace_executeCommand](...)
       vim.lsp.codelens.refresh()
@@ -101,7 +101,7 @@ function M.run_on(pos)
   local options = codelenses_on(pos)
 
   if #options == 0 then
-    vim.notify('No executable codelens found for current line', vim.log.levels.INFO)
+    vim.notify('No executable codelens found for position', vim.log.levels.INFO)
   elseif #options == 1 then
     local lens = options[1]
     execute_lens(lens[1], lens.bufnr, lens.client_id)
