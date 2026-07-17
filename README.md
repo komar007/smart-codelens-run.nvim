@@ -14,7 +14,7 @@ text (for example function name), and for [`vim.lsp.codelens.run`] to work, the 
 on the line to which the codelens is attached. This means for example that being inside a test, one
 often needs to jump to the function header of the test to execute it and then jump back.
 
-The mapping `<Plug>(SmartCodelensRun)` provided by this plugin takes an optional register prefix
+The mapping `<Plug>(smart-codelens-run)` provided by this plugin takes an optional register prefix
 (`"r`) and executes a codelens attached to the line at the position marked by the mark of the same
 name as the passed register. It may be an unconventional approach, but it allows the use of just one
 mapping for a running on the current line (the default, if the register prefix is not used) and on a
@@ -36,7 +36,7 @@ the whole test module.
 position and presents the user with a choice via [`vim.ui.select`]. This allows one to run the
 runnable function / test they are currently working on without moving the cursor. For LSPs where
 this is not supported (the range is not emitted), the user may fall back to defining a mark for the
-test header and using the `"r` registere prefix.
+test header and using the `"r` register prefix.
 
 The mark may also be defined elsewhere than the line in which there is a codelens, and on supported
 LSPs the most suitable codelens is resolved for the mark just as it is for the current cursor
@@ -54,7 +54,7 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
   'komar007/smart-codelens-run.nvim',
   keys = {
-    { "gC", "<Plug>(SmartCodelensRun)", desc = "Run related codelens" },
+    { "gC", "<Plug>(smart-codelens-run)", desc = "Run related codelens" },
   },
 }
 ```

@@ -97,12 +97,30 @@ local function format_lens(option)
   return title
 end
 
-function M.run_on(pos)
+---@class Opts
+---@field select boolean? show vim.ui.select dialog when more than one codelens is found for a given position, default: true
+
+---@param opts Opts?
+---@return Opts
+local function with_defaults(opts)
+  opts = opts or {}
+  local select
+  if opts.select == nil then
+    select = true
+  end
+  return {
+    select = select
+  }
+end
+
+---@param opts Opts?
+local function run_on_getpos(pos, opts)
+  opts = with_defaults(opts)
   local options = codelenses_on(pos)
 
   if #options == 0 then
     vim.notify('No executable codelens found for position', vim.log.levels.INFO)
-  elseif #options == 1 then
+  elseif #options == 1 or not opts.select then
     local lens = options[1]
     execute_lens(lens[1], lens.bufnr, lens.client_id)
   else
@@ -118,9 +136,11 @@ function M.run_on(pos)
   end
 end
 
-function M.smart_codelens_run()
+---Run codelens in current cursor position or mark passed via register prefix
+---@param opts Opts?
+function M.run(opts)
   local pos = vim.v.register == '"' and '.' or "'" .. vim.v.register
-  M.run_on(pos)
+  run_on_getpos(pos, opts)
 end
 
 return M
