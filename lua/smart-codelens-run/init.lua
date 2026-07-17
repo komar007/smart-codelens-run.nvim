@@ -1,4 +1,7 @@
 local M = {}
+
+--- Get the extended codelens range using rust-analyzer-specific information in codelens
+---@return integer, integer the start and end row of extended range
 local function get_ra_runnable_range(lens)
   local arguments = (lens.command.arguments or {})[1]
   local target_range = arguments and arguments.location and arguments.location.targetRange
@@ -56,6 +59,14 @@ local function get_extended_range(lens, bufnr, client)
   end
   return start_row, end_row
 end
+
+---@class LensOption
+---@field [integer] lsp.CodeLens
+---@field prio integer
+---@field bufnr integer
+---@field client vim.lsp.Client?
+
+---@return LensOption[]
 local function codelenses_on(pos)
   local position = vim.fn.getpos(pos)
   local bufnr = position[1]
@@ -131,14 +142,15 @@ local function execute_lens(lens, bufnr, client)
   end
 end
 
+---@param option LensOption
 local function format_lens(option)
   local command = option[1].command
-  local title = command.title
-  local arguments = command.arguments
+  local title = command and command.title
+  local arguments = command and command.arguments
   local argument = arguments and arguments[1]
   local ra_label = argument and argument.label
 
-  if ra_label and argument.kind then
+  if ra_label and argument and argument.kind then
     ra_label = argument.kind .. ' ' .. ra_label
   end
 
