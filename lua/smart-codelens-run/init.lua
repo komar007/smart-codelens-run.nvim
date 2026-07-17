@@ -1,7 +1,4 @@
 local M = {}
-
-local methods = vim.lsp.protocol.Methods
-
 local function get_ra_runnable_range(lens)
   local arguments = (lens.command.arguments or {})[1]
   local target_range = arguments and arguments.location and arguments.location.targetRange
@@ -55,6 +52,14 @@ local function codelenses_on(pos)
   return lenses
 end
 
+local function exec_cmd_handler(...)
+  if vim.fn.has('nvim-0.12') ~= 1 then
+    -- as in execute_lens from vim/lsp/codelens.lua of neovim-0.11.7, the handler is not passed
+    -- anymore in neovim-0.12.4
+    vim.lsp.handlers[vim.lsp.protocol.Methods.workspace_executeCommand](...)
+    vim.lsp.codelens.refresh()
+  end
+end
 local function execute_lens(lens, bufnr, client_id)
   if client_id ~= nil then
     local client = vim.lsp.get_client_by_id(client_id)
@@ -63,18 +68,12 @@ local function execute_lens(lens, bufnr, client_id)
       return
     end
     vim.notify('excuting on ' .. client.name, vim.log.levels.DEBUG)
-    client:exec_cmd(lens.command, { bufnr = bufnr }, function(...)
-      vim.lsp.handlers[methods.workspace_executeCommand](...)
-      vim.lsp.codelens.refresh()
-    end)
+    client:exec_cmd(lens.command, { bufnr = bufnr }, exec_cmd_handler)
   else
     -- The codelens source client is not exposed here (<nvim-0.12), so try all clients attached
     -- to this buffer. Clients that do not own the command should ignore it.
     for _, client in pairs(vim.lsp.get_clients({ bufnr = bufnr })) do
-      client:exec_cmd(lens.command, { bufnr = bufnr }, function(...)
-        vim.lsp.handlers[methods.workspace_executeCommand](...)
-        vim.lsp.codelens.refresh()
-      end)
+      client:exec_cmd(lens.command, { bufnr = bufnr }, exec_cmd_handler)
     end
   end
 end
