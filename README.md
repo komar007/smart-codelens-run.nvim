@@ -1,6 +1,6 @@
 # smart-codelens-run.nvim
 
-Run the most suitable LSP codelens for a position in buffer.
+Run the most suitable LSP codelens for a given position in buffer.
 
 ## What it does
 
@@ -28,19 +28,17 @@ other files.
 ### Running codelenses associated with the cursor position
 
 Some LSP servers (currently, only [`rust-analyzer`] is supported) attach extra information to the
-codelenses they produce which contains a range of code which defines the runnable/testable. For
+codelenses they produce which contains a range of code which spans the runnable/testable. For
 [`rust-analyzer`] this would be for example the whole `main` function, the whole test function, or
 the whole test module.
 
-`smart-codelens-run` finds all the codelenses whose range contains the current line / marked
-position and presents the user with a choice via [`vim.ui.select`]. This allows one to run the
-runnable function / test they are currently working on without moving the cursor. For LSPs where
-this is not supported (the range is not emitted), the user may fall back to defining a mark for the
-test header and using the `"r` register prefix.
+For LSP servers that do not attach such information (most likely all except [`rust-analyzer`]),
+a treesitter-based heuristic is used to expand the range provided by the codelens to the whole
+runnable/testable.
 
-The mark may also be defined elsewhere than the line in which there is a codelens, and on supported
-LSPs the most suitable codelens is resolved for the mark just as it is for the current cursor
-location.
+`smart-codelens-run` finds all the codelenses whose expanded range contains the current line /
+marked position and presents the user with a choice via [`vim.ui.select`]. This allows one to run
+the runnable function / test they are currently working on without moving the cursor.
 
 [`vim.lsp.codelens.run`]: https://neovim.io/doc/user/lsp/#vim.lsp.codelens.run()
 [`rust-analyzer`]: https://rust-analyzer.github.io/
@@ -58,3 +56,39 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
   },
 }
 ```
+
+## `<Plug>` mappings
+
+### `<Plug>(smart-codelens-run)`
+
+Run the codelens most closely associated with the cursor position (or the position of a mark passed
+via register prefix, e.g. `"r<Plug>(smart-codelens-run)`).
+
+When more than one codelens matches the target position, a [`vim.ui.select`] dialog is presented.
+Lenses attached directly to the target line are prioritized; among lenses whose expanded range
+contains the target, smaller ranges are preferred (e.g. a function body over a whole module).
+
+### `<Plug>(smart-codelens-run-one)`
+
+Like `<Plug>(smart-codelens-run)`, but skips the selection dialog. When multiple codelenses match,
+the best match (same prioritization rules) is executed immediately.
+
+## Lua API
+
+Example:
+
+```lua
+require('smart-codelens-run').run({ select = true })
+```
+
+### `run(opts?)`
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `opts` | `table?` | `{}` | Optional configuration table. |
+| `opts.select` | `boolean?` | `true` | When `true` and more than one codelens matches, show a `vim.ui.select` picker. When `false`, the best match is executed immediately. |
+
+The target position is determined by `vim.v.register`:
+
+- default (no register prefix): uses the current cursor position,
+- with a register prefix (e.g. `"r`): uses the position stored in mark `r`.
