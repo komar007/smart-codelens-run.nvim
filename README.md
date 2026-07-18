@@ -32,23 +32,19 @@ codelenses they produce which contains a range of code which spans the runnable/
 [`rust-analyzer`] this would be for example the whole `main` function, the whole test function, or
 the whole test module.
 
-For LSP servers that do not attach such information (most likely all except [`rust-analyzer`]),
-a treesitter-based heuristic is used to expand the range provided by the codelens to the whole
+For LSP servers that do not attach such information (most likely all except [`rust-analyzer`]), a
+treesitter-based heuristic is used to expand the range provided by the codelens to the whole
 runnable/testable.
 
 `smart-codelens-run` finds all the codelenses whose expanded range contains the current line /
 marked position and presents the user with a choice via [`vim.ui.select`]. This allows one to run
 the runnable function / test they are currently working on without moving the cursor.
 
-[`vim.lsp.codelens.run`]: https://neovim.io/doc/user/lsp/#vim.lsp.codelens.run()
-[`rust-analyzer`]: https://rust-analyzer.github.io/
-[`vim.ui.select`]: https://neovim.io/doc/user/lua/#vim.ui.select()
-
 ## Installation & usage
 
 With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
-``` lua
+```lua
 {
   'komar007/smart-codelens-run.nvim',
   keys = {
@@ -83,12 +79,16 @@ require('smart-codelens-run').run({ select = true })
 
 ### `run(opts?)`
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `opts` | `table?` | `{}` | Optional configuration table. |
-| `opts.select` | `boolean?` | `true` | When `true` and more than one codelens matches, show a `vim.ui.select` picker. When `false`, the best match is executed immediately. |
+| Parameter     | Type       | Default | Description                                                                                                                          |
+| ------------- | ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `opts`        | `table?`   | `{}`    | Optional configuration table.                                                                                                        |
+| `opts.select` | `boolean?` | `true`  | When `true` and more than one codelens matches, show a `vim.ui.select` picker. When `false`, the best match is executed immediately. |
 
 The target position is determined by `vim.v.register`:
 
 - default (no register prefix): uses the current cursor position,
 - with a register prefix (e.g. `"r`): uses the position stored in mark `r`.
+
+[`rust-analyzer`]: https://rust-analyzer.github.io/
+[`vim.lsp.codelens.run`]: https://neovim.io/doc/user/lsp/#vim.lsp.codelens.run()
+[`vim.ui.select`]: https://neovim.io/doc/user/lua/#vim.ui.select()
