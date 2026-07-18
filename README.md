@@ -34,17 +34,10 @@ text (for example function name), and for [`vim.lsp.codelens.run`] to work, the 
 on the line to which the codelens is attached. This means for example that being inside a test, one
 often needs to jump to the function header of the test to execute it and then jump back.
 
-The mapping [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run) provided by this plugin takes an
-optional register prefix (`"r`) and executes a codelens attached to the line at the position marked
-by the mark of the same name as the passed register. It may be an unconventional approach, but it
-allows the use of just one mapping for a running on the current line (the default, if the register
-prefix is not used) and on a selected mark. *This interface may be subject to change, depending on
-how convenient it proves to be in practice. Taking a motion / single-character register as argument
-may be used instead/added*.
-
-This enables a workflow where a mark is placed in a location of a codelens that runs a
+This plugin enables a workflow where a mark is placed in a location of a codelens that runs a
 runnable/testable, and then the test can be quickly invoked between changes elsewhere, including
-other files.
+other files. See [`<Plug>(smart-codelens-run-one-mark)`](#plugsmart-codelens-run-one-mark) and
+[`<Plug>(smart-codelens-run-one-at)`](#plugsmart-codelens-run-one-at).
 
 ### Running codelenses associated with the cursor position
 
@@ -78,13 +71,15 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ### `<Plug>(smart-codelens-run)`
 
-Run the codelens most closely associated with the cursor position (or the position of a mark passed
-via register prefix, e.g. `"r<Plug>(smart-codelens-run)`).
+Run the codelens most closely associated with the cursor position or the position of a mark passed
+via register prefix (e.g. `"r<Plug>(smart-codelens-run)`).
 
 > [!NOTE]
 > Passing a mark via register prefix is a questionable idea but seemed convenient at first. See
 > [`<Plug>(smart-codelens-run-mark)`](#plugsmart-codelens-run-mark) and
 > [`<Plug>(smart-codelens-run-at)`](#plugsmart-codelens-run-at) for better alternatives.
+>
+> For running at the cursor position, this is the recommended way though.
 
 When more than one codelens matches the target position, a [`vim.ui.select`] dialog is presented.
 Lenses attached directly to the target line are prioritized; among lenses whose expanded range
@@ -95,6 +90,7 @@ contains the target, smaller ranges are preferred (e.g. a function body over a w
 Like [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run), but skips the selection dialog. When
 multiple codelenses match, the best match (same prioritization rules) is executed immediately.
 
+
 ### `<Plug>(smart-codelens-run-mark)`
 
 Reads a single mark character after the mapping and runs a codelens at that mark's position. This is
@@ -102,6 +98,17 @@ an alternative to the questionably vim-like register-prefix interface of
 [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run) — press the mapping, then the mark letter
 (e.g. `gCr` to run at mark `r`). When more than one codelens matches, a [`vim.ui.select`] dialog is
 presented.
+
+> [!TIP]
+> The mapping [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run) takes an optional register
+> prefix (`"r`) and executes a codelens attached to the line at the position marked by the mark of
+> the same name as the passed register.
+>
+> It may be an unconventional approach, but it allows the use of just one mapping for running on the
+> current line (the default, if the register prefix is not used) and on a selected mark. This cannot
+> be done with [`<Plug>(smart-codelens-run-mark)`](plugsmart-codelens-run-mark) as it consumes a
+> mandatory keystroke. If it is relevant, consider using
+> [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run) instead.
 
 ### `<Plug>(smart-codelens-run-one-mark)`
 
