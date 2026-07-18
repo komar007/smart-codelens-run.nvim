@@ -1,4 +1,4 @@
-# smart-codelens-run.nvim
+# 🧠🔎🏃‍➡️smart-codelens-run.nvim
 
 Run the most suitable LSP codelens for a given position in buffer.
 
