@@ -66,12 +66,11 @@ end
 ---@field bufnr integer
 ---@field client vim.lsp.Client?
 
+---@param bufnr integer buffer number
+---@param row integer 1-based row number
 ---@return LensOption[]
-local function codelenses_on(pos)
-  local position = vim.fn.getpos(pos)
-  local bufnr = position[1]
-  local row = position[2] - 1
-
+local function find_codelenses(bufnr, row)
+  row = row - 1
   local lenses_in_buffer
   if vim.fn.has('nvim-0.12') == 1 then
     lenses_in_buffer = vim.lsp.codelens.get({ bufnr = bufnr })
@@ -179,10 +178,14 @@ local function with_defaults(opts)
   }
 end
 
+--- Run codelens at location
+---@param bufnr integer
+---@param row integer
 ---@param opts Opts?
-local function run_on_getpos(pos, opts)
+function M.run_at(bufnr, row, opts)
   opts = with_defaults(opts)
-  local options = codelenses_on(pos)
+
+  local options = find_codelenses(bufnr, row)
 
   if #options == 0 then
     vim.notify('No executable codelens found for position', vim.log.levels.INFO)
@@ -202,7 +205,22 @@ local function run_on_getpos(pos, opts)
   end
 end
 
----Run codelens in current cursor position or mark passed via register prefix
+---@param expr string argyment to vim.fn.getpos
+---@param opts Opts?
+local function run_on_getpos(expr, opts)
+  local position = vim.fn.getpos(expr)
+  local bufnr = position[1]
+  local row = position[2]
+
+  M.run_at(bufnr, row, opts)
+end
+
+--- Run codelens at mark passed as argument
+function M.run_at_mark(mark, opts)
+  run_on_getpos("'" .. mark, opts)
+end
+
+--- Run codelens at current cursor position or mark passed via register prefix
 ---@param opts Opts?
 function M.run(opts)
   local pos = vim.v.register == '"' and '.' or "'" .. vim.v.register
