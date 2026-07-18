@@ -2,6 +2,26 @@
 
 Run the most suitable LSP codelens for a given position in buffer.
 
+<!--toc:start-->
+- [🧠🔎🏃‍➡️smart-codelens-run.nvim](#🧠🔎🏃‍️smart-codelens-runnvim)
+  - [What it does](#what-it-does)
+    - [Running remote codelenses](#running-remote-codelenses)
+    - [Running codelenses associated with the cursor position](#running-codelenses-associated-with-the-cursor-position)
+  - [Installation & usage](#installation-usage)
+  - [`<Plug>` mappings](#plug-mappings)
+    - [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run)
+    - [`<Plug>(smart-codelens-run-one)`](#plugsmart-codelens-run-one)
+    - [`<Plug>(smart-codelens-run-mark)`](#plugsmart-codelens-run-mark)
+    - [`<Plug>(smart-codelens-run-one-mark)`](#plugsmart-codelens-run-one-mark)
+    - [`<Plug>(smart-codelens-run-at)`](#plugsmart-codelens-run-at)
+      - [Example](#example)
+    - [`<Plug>(smart-codelens-run-one-at)`](#plugsmart-codelens-run-one-at)
+  - [Lua API](#lua-api)
+    - [`run(opts?)`](#runopts)
+    - [`run_at(bufnr, row, opts?)`](#runatbufnr-row-opts)
+    - [`run_at_mark(mark, opts?)`](#runatmarkmark-opts)
+<!--toc:end-->
+
 ## What it does
 
 This plugin provides convenience features for working with executable codelenses provided by some
