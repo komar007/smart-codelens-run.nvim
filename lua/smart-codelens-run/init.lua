@@ -93,7 +93,7 @@ local function codelenses_on(pos)
       lens = item
       client = nil
     end
-    if lens.command == nil or lens.command.command == '' then
+    if lens.command == nil or lens.command.command == '' or lens.range == nil then
       goto continue
     end
     if lens.range and lens.range.start.line == row then
@@ -131,11 +131,12 @@ end
 ---@param client vim.lsp.Client?
 local function execute_lens(lens, bufnr, client)
   if client ~= nil then
-    vim.notify('excuting on ' .. client.name, vim.log.levels.DEBUG)
+    vim.notify('executing codelens on ' .. client.name, vim.log.levels.DEBUG)
     client:exec_cmd(lens.command, { bufnr = bufnr }, exec_cmd_handler)
   else
     -- The codelens source client is not exposed here (<nvim-0.12), so try all clients attached
     -- to this buffer. Clients that do not own the command should ignore it.
+    vim.notify('executing codelens on all clients', vim.log.levels.DEBUG)
     for _, c in pairs(vim.lsp.get_clients({ bufnr = bufnr })) do
       c:exec_cmd(lens.command, { bufnr = bufnr }, exec_cmd_handler)
     end
@@ -143,6 +144,7 @@ local function execute_lens(lens, bufnr, client)
 end
 
 ---@param option LensOption
+---@return string
 local function format_lens(option)
   local command = option[1].command
   local title = command and command.title
@@ -158,7 +160,7 @@ local function format_lens(option)
     return ra_label .. ' [' .. title .. ']'
   end
 
-  return title
+  return title or ""
 end
 
 ---@class Opts
@@ -168,8 +170,8 @@ end
 ---@return Opts
 local function with_defaults(opts)
   opts = opts or {}
-  local select
-  if opts.select == nil then
+  local select = opts.select
+  if select == nil then
     select = true
   end
   return {
