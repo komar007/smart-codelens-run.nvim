@@ -35,7 +35,7 @@ local function run_at(opts)
     target = motion_start
   end
   if target ~= nil then
-    require('smart-codelens-run').run_at(0, target[1], opts)
+    require('smart-codelens-run').run_at(0, target[1], target[2], opts)
   end
 end
 function _G._smart_codelens_run__run_at(_)

@@ -18,7 +18,7 @@ Run the most suitable LSP codelens for a given position in buffer.
     - [`<Plug>(smart-codelens-run-one-at)`](#plugsmart-codelens-run-one-at)
   - [Lua API](#lua-api)
     - [`run(opts?)`](#runopts)
-    - [`run_at(bufnr, row, opts?)`](#runatbufnr-row-opts)
+    - [`run_at(bufnr, row, col, opts?)`](#runatbufnr-row-col-opts)
     - [`run_at_mark(mark, opts?)`](#runatmarkmark-opts)
 <!--toc:end-->
 
@@ -89,7 +89,6 @@ contains the target, smaller ranges are preferred (e.g. a function body over a w
 
 Like [`<Plug>(smart-codelens-run)`](#plugsmart-codelens-run), but skips the selection dialog. When
 multiple codelenses match, the best match (same prioritization rules) is executed immediately.
-
 
 ### `<Plug>(smart-codelens-run-mark)`
 
@@ -164,7 +163,7 @@ The target position is determined by `vim.v.register`:
 - default (no register prefix): uses the current cursor position,
 - with a register prefix (e.g. `"r`): uses the position stored in mark `r`.
 
-### `run_at(bufnr, row, opts?)`
+### `run_at(bufnr, row, col, opts?)`
 
 Run a codelens at a specific position indicated by buffer and row number. Use this to
 programmatically execute a codelens at an arbitrary location without relying on marks or cursor
@@ -174,6 +173,7 @@ position.
 | --------- | --------- | ------- | ---------------------------- |
 | `bufnr`   | `integer` | —       | Buffer number.               |
 | `row`     | `integer` | —       | 1-based row number.          |
+| `col`     | `integer` | —       | 0-based column number.       |
 | `opts`    | `table?`  | `{}`    | see [`run(opts?)`](#runopts) |
 
 ### `run_at_mark(mark, opts?)`

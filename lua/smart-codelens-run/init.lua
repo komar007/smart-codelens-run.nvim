@@ -1,3 +1,6 @@
+--- Maximum reasonable line length
+MAX_LINE = 10000
+
 local M = {}
 
 --- Get the extended codelens range using rust-analyzer-specific information in codelens
@@ -60,6 +63,13 @@ local function get_extended_range(lens, bufnr, client)
   return start_row, end_row
 end
 
+--- Calculate horizontal distance between a range and a point (how close a point is to the closer end of the range)
+---@param range lsp.Range
+---@param col integer
+local function horizontal_distance(range, col)
+  return math.min(math.abs(range.start.character - col), math.abs(range["end"].character - col))
+end
+
 ---@class LensOption
 ---@field [integer] lsp.CodeLens
 ---@field prio integer
@@ -68,8 +78,9 @@ end
 
 ---@param bufnr integer buffer number
 ---@param row integer 1-based row number
+---@param col integer 0-based column number
 ---@return LensOption[]
-local function find_codelenses(bufnr, row)
+local function find_codelenses(bufnr, row, col)
   row = row - 1
   local lenses_in_buffer
   if vim.fn.has('nvim-0.12') == 1 then
@@ -96,8 +107,10 @@ local function find_codelenses(bufnr, row)
       goto continue
     end
     if lens.range and lens.range.start.line == row then
-      -- highest priority for lenses on current line
-      table.insert(lenses, { lens, prio = -1, bufnr = bufnr, client = client })
+      -- negative ("higher") priorities for lenses on target line
+      -- lenses horizontally closer to target position have higher priority (lower number)
+      local d = horizontal_distance(lens.range, col)
+      table.insert(lenses, { lens, prio = d - MAX_LINE, bufnr = bufnr, client = client })
       goto continue
     end
     local ext_start, ext_end = get_extended_range(lens, bufnr, client)
@@ -179,13 +192,14 @@ local function with_defaults(opts)
 end
 
 --- Run codelens at location
----@param bufnr integer
----@param row integer
+---@param bufnr integer buffer number
+---@param row integer 1-based row number
+---@param col integer 0-based column number
 ---@param opts Opts?
-function M.run_at(bufnr, row, opts)
+function M.run_at(bufnr, row, col, opts)
   opts = with_defaults(opts)
 
-  local options = find_codelenses(bufnr, row)
+  local options = find_codelenses(bufnr, row, col)
 
   if #options == 0 then
     vim.notify('No executable codelens found for position', vim.log.levels.INFO)
@@ -211,8 +225,9 @@ local function run_on_getpos(expr, opts)
   local position = vim.fn.getpos(expr)
   local bufnr = position[1]
   local row = position[2]
+  local col = position[3]
 
-  M.run_at(bufnr, row, opts)
+  M.run_at(bufnr, row, col, opts)
 end
 
 --- Run codelens at mark passed as argument
